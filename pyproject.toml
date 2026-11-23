@@ -1,0 +1,34 @@
+[project]
+name = "kafka-sync-pipeline"
+version = "0.1.0"
+description = "Kafka (KRaft) event-streaming and CDC reconciliation lab"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "confluent-kafka>=2.12",
+    "psycopg[binary]>=3.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.8",
+]
+
+[tool.uv]
+# No importable package yet; the services arrive in Milestone 2.
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "integration: needs the local stack running (make up)",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]

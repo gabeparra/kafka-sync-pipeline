@@ -2,7 +2,7 @@
 
 Goal: Build a clean, tested Apache Kafka event-streaming and reconciliation lab that moves batch reconciliation to real-time event streaming.
 
-## Milestone 1: Local KRaft Kafka + Postgres + Schema Registry Stack
+## Milestone 1: Local KRaft Kafka + Postgres + Schema Registry Stack (done)
 - `compose.yaml` running single-node Kafka (KRaft, no ZooKeeper), Schema Registry, and PostgreSQL 16 with healthchecks.
 - Topic bootstrap script (`scripts/init_topics.sh`) creating:
   - `source.records.raw` (6 partitions, keyed by `entity_id`)
@@ -10,6 +10,7 @@ Goal: Build a clean, tested Apache Kafka event-streaming and reconciliation lab 
   - `records.retry.1m` (3 partitions)
   - `records.dlq` (3 partitions)
 - `Makefile` targets: `up`, `down`, `topics`, `seed`, `test`, `lag`.
+- `source_events` outbox table via `scripts/migrate.sh`, sample data via `make seed`, and a pytest suite pinning the topic and schema contract.
 
 ## Milestone 2: Producer + Schema Validation + Outbox/CDC Publisher
 - Python producer (`src/producer/`) using `confluent-kafka` with `enable.idempotence=true`, `acks=all`, and deterministic partitioning by `entity_id`.
