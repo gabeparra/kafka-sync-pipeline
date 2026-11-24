@@ -21,11 +21,11 @@ services:
       CLUSTER_ID: 4L6g3nShT-eMCtK--X86sw
       # --- Listeners ---------------------------------------------------------
       # INTERNAL: other containers (kafka:19092). HOST: clients on the host
-      # (localhost:9092). A client is always told to reconnect to the
+      # (127.0.0.1:9092). A client is always told to reconnect to the
       # *advertised* address of the listener it bootstrapped on, which is why
       # the two audiences need separate listeners.
       KAFKA_LISTENERS: INTERNAL://:19092,HOST://:9092,CONTROLLER://:9093
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:19092,HOST://localhost:${KAFKA_HOST_PORT:-9092}
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:19092,HOST://127.0.0.1:${KAFKA_HOST_PORT:-9092}
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       # --- Single-node replication settings ---------------------------------

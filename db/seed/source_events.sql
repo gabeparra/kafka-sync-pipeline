@@ -15,7 +15,9 @@ SELECT
         'status',          (ARRAY['active', 'inactive', 'pending'])[1 + (seq % 3)],
         'version',         1 + (seq - 1) / :entities
     ),
-    now() - make_interval(secs => :events - seq)
+    -- One millisecond apart and never earlier than a previous seed run, so a
+    -- re-seed reads as newer changes instead of stale ones.
+    now() + make_interval(secs => seq / 1000.0)
 FROM (
     SELECT seq, 1 + (seq - 1) % :entities AS entity
     FROM generate_series(1, :events) AS seq

@@ -5,25 +5,37 @@ description = "Kafka (KRaft) event-streaming and CDC reconciliation lab"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "confluent-kafka>=2.12",
+    "confluent-kafka[json,schemaregistry]>=2.12",
+    "fastapi>=0.115",
+    "prometheus-client>=0.21",
     "psycopg[binary]>=3.2",
+    "pydantic>=2.9",
+    "uvicorn>=0.32",
 ]
 
 [dependency-groups]
 dev = [
+    "httpx>=0.27",
     "pytest>=8.3",
+    "pytest-timeout>=2.3",
     "ruff>=0.8",
 ]
 
-[tool.uv]
-# No importable package yet; the services arrive in Milestone 2.
-package = false
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/kafka_sync"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra --strict-markers"
+# Disruptive tests restart the broker; run them on purpose with `make chaos`.
+addopts = "-ra --strict-markers -m 'not disruptive'"
+timeout = 180
 markers = [
     "integration: needs the local stack running (make up)",
+    "disruptive: stops and restarts stack containers (make chaos)",
 ]
 
 [tool.ruff]
