@@ -171,3 +171,7 @@ tests/                     unit, integration and chaos tests
 ```
 
 See [PLAN.md](./PLAN.md) for the milestone roadmap.
+
+## License
+
+MIT. See [LICENSE](./LICENSE). Copyright (c) 2026 Mariano Gabriel Parra.

@@ -4,6 +4,8 @@ version = "0.1.0"
 description = "Kafka (KRaft) event-streaming and CDC reconciliation lab"
 readme = "README.md"
 requires-python = ">=3.12"
+license = { file = "LICENSE" }
+authors = [{ name = "Mariano Gabriel Parra" }]
 dependencies = [
     "confluent-kafka[json,schemaregistry]>=2.12",
     "fastapi>=0.115",
