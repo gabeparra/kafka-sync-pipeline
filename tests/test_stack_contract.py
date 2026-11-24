@@ -1,21 +1,38 @@
-"""Milestone 1 contract: the stack is up and shaped the way the pipeline assumes.
+"""The local stack is up and shaped the way the pipeline assumes.
 
 These are the invariants later milestones build on (partition counts drive key
 ordering, cleanup policies drive retention, the outbox table drives publishing),
-so they are pinned here rather than left as script side effects.
+so they are pinned here rather than left as script side effects. Unlike the
+rest of the suite, these tests look at the real topics and database that
+`make up` created.
 """
 
 from __future__ import annotations
 
 import json
 import urllib.request
+from collections.abc import Iterator
 
 import psycopg
 import pytest
 from confluent_kafka import KafkaError, Producer
 from confluent_kafka.admin import AdminClient, ConfigResource
 
+from kafka_sync.config import Settings
+
 pytestmark = pytest.mark.integration
+
+
+@pytest.fixture
+def dev_db(base_settings: Settings) -> Iterator[psycopg.Connection]:
+    """The developer database. Work is rolled back so tests leave no rows behind."""
+    conn = psycopg.connect(base_settings.postgres_dsn, connect_timeout=5)
+    try:
+        yield conn
+    finally:
+        conn.rollback()
+        conn.close()
+
 
 DAY_MS = 24 * 60 * 60 * 1000
 
@@ -63,7 +80,7 @@ def test_topic_has_expected_configs(admin: AdminClient, topic: str) -> None:
     assert actual == expected_configs
 
 
-def test_topic_auto_creation_is_disabled(admin: AdminClient, bootstrap_servers: str) -> None:
+def test_topic_auto_creation_is_disabled(admin: AdminClient, base_settings: Settings) -> None:
     """Producing to an unknown topic must fail instead of creating it.
 
     A producer's metadata request is what triggers auto-creation on a default
@@ -71,7 +88,9 @@ def test_topic_auto_creation_is_disabled(admin: AdminClient, bootstrap_servers: 
     """
     name = "this.topic.must.not.exist"
     errors: list[KafkaError | None] = []
-    producer = Producer({"bootstrap.servers": bootstrap_servers, "message.timeout.ms": 3000})
+    producer = Producer(
+        {"bootstrap.servers": base_settings.bootstrap_servers, "message.timeout.ms": 3000}
+    )
 
     producer.produce(name, value=b"x", on_delivery=lambda err, _msg: errors.append(err))
     producer.flush(10)
@@ -81,9 +100,10 @@ def test_topic_auto_creation_is_disabled(admin: AdminClient, bootstrap_servers: 
 
 
 def test_schema_registry_is_reachable_and_backed_by_kafka(
-    admin: AdminClient, schema_registry_url: str
+    admin: AdminClient, base_settings: Settings
 ) -> None:
-    with urllib.request.urlopen(f"{schema_registry_url}/subjects", timeout=5) as response:
+    url = f"{base_settings.schema_registry_url}/subjects"
+    with urllib.request.urlopen(url, timeout=5) as response:
         subjects = json.load(response)
 
     assert isinstance(subjects, list)
@@ -91,8 +111,10 @@ def test_schema_registry_is_reachable_and_backed_by_kafka(
     assert "_schemas" in admin.list_topics(timeout=10).topics
 
 
-def test_outbox_table_accepts_events_and_defaults_to_unpublished(db: psycopg.Connection) -> None:
-    row = db.execute(
+def test_outbox_table_accepts_events_and_defaults_to_unpublished(
+    dev_db: psycopg.Connection,
+) -> None:
+    row = dev_db.execute(
         """
         INSERT INTO source_events (entity_id, event_type, payload)
         VALUES ('person-test', 'record.created', '{"status": "active"}')
@@ -106,12 +128,12 @@ def test_outbox_table_accepts_events_and_defaults_to_unpublished(db: psycopg.Con
     assert published_at is None
 
 
-def test_outbox_rejects_duplicate_event_id(db: psycopg.Connection) -> None:
+def test_outbox_rejects_duplicate_event_id(dev_db: psycopg.Connection) -> None:
     insert = """
         INSERT INTO source_events (event_id, entity_id, event_type, payload)
         VALUES ('00000000-0000-0000-0000-000000000001', 'person-test', 'record.created', '{}')
     """
-    db.execute(insert)
+    dev_db.execute(insert)
 
     with pytest.raises(psycopg.errors.UniqueViolation):
-        db.execute(insert)
+        dev_db.execute(insert)
