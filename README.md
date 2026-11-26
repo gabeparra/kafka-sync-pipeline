@@ -2,6 +2,8 @@
 
 A production-style **Apache Kafka (KRaft)** event-streaming and reconciliation pipeline that runs entirely on a laptop. A source system writes change events to a transactional outbox, a publisher streams them to Kafka, and an idempotent consumer group reconciles them into a destination database that shares no primary key with the source. Failures are retried with a delay or parked in a dead letter queue that can be inspected and replayed.
 
+**Status:** `Maintained` - self-contained local Kafka (KRaft) outbox and reconciliation reference pipeline.
+
 It is a personal engineering lab, built to practise the parts of Kafka that tutorials skip: what happens on duplicates, poison messages, crashes, rebalances and broker outages. Every guarantee listed below is backed by an automated test that runs against a real broker.
 
 ## What It Demonstrates
