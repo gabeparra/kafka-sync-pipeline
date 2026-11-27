@@ -160,6 +160,7 @@ compose.yaml               Kafka (KRaft), Schema Registry, PostgreSQL 16 with he
 Makefile                   every developer entry point
 scripts/                   init_topics.sh, seed.sh, wait_for_stack.sh
 db/seed/                   sample outbox data
+docs/PLAN.md               milestone roadmap
 src/kafka_sync/
   config.py, clients.py    settings and the Kafka client configuration
   contract.py, schemas/    JSON Schema contract and Schema Registry codec
@@ -172,7 +173,7 @@ src/kafka_sync/
 tests/                     unit, integration and chaos tests
 ```
 
-See [PLAN.md](./PLAN.md) for the milestone roadmap.
+See [docs/PLAN.md](docs/PLAN.md) for the milestone roadmap.
 
 ## License
 
